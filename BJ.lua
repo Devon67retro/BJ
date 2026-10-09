@@ -51,9 +51,6 @@ end
 local RootMaid = Maid.new()
 
 local shared = odh_shared_plugins
-task.spawn(function()
-    shared.load_from_github_url("/aux0on/CrashHandler/refs/heads/main/Prevention.lua")
-end)
 
 local Services = {
     Players = game:GetService("Players"),
@@ -638,9 +635,31 @@ hiddenGui.IgnoreGuiInset = true
 hiddenGui.Parent = GetSafeGuiRoot()
 RootMaid:GiveTask(hiddenGui)
 
-local BombJump = shared.CreateTab("Bomb Jump+", "/Devon67retro/BJ/refs/heads/main/icon.png")
+-- Create the tab safely: if the icon path is wrong, retry without an icon
+-- instead of crashing the whole script.
+local BombJump
+do
+    local okTab, tab = pcall(function()
+        return shared.CreateTab("Bomb Jump+", "/Devon67retro/BJ/refs/heads/main/icon.png")
+    end)
+    if not okTab or not tab then
+        warn("[Bomb Jump+] CreateTab with icon failed: " .. tostring(tab))
+        okTab, tab = pcall(function()
+            return shared.CreateTab("Bomb Jump+")
+        end)
+    end
+    if not okTab or not tab then
+        warn("[Bomb Jump+] CreateTab failed: " .. tostring(tab))
+        return
+    end
+    BombJump = tab
+end
 
 local _game = shared.game_name
+pcall(function() shared.Notify("Bomb Jump+ running. Game: " .. tostring(_game), 3) end)
+if _game ~= "Murder Mystery 2" and _game ~= "Murder Mystery Modded" then
+    warn("[Bomb Jump+] Unsupported game: " .. tostring(_game))
+end
 
 if _game == "Murder Mystery 2" or _game == "Murder Mystery Modded" then
 
